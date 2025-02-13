@@ -63,9 +63,18 @@ def login_user(bank):
         print("❌ Login failed. Please check your credentials.")
 
 def handle_logged_in_user(bank):
-    """Handles actions after user logs in."""
+    """Routes users to their appropriate menu based on role."""
+    if bank.current_user.role == "client":
+        handle_client_menu(bank)  # Rename the existing menu function
+    elif bank.current_user.role == "employee":
+        handle_employee_menu(bank)
+    elif bank.current_user.role == "admin":
+        handle_admin_menu(bank)
+
+def handle_client_menu(bank):
+    """Handles client operations."""
     while True:
-        print("\n=== User Dashboard ===")
+        print("\n=== Client Dashboard ===")
         print("1. View Balance")
         print("2. Transfer Money")
         print("3. View Transactions")
@@ -141,6 +150,132 @@ def view_transactions(bank):
         print(f"- {tx['timestamp']} | {tx['type'].upper()} | ${tx['amount']:.2f}")
         print(f"  Description: {tx['description']}")
         print("  ----------------------")
+
+def handle_employee_menu(bank):
+    """Handles employee operations."""
+    while True:
+        print("\n=== Employee Dashboard ===")
+        print("1. Process Customer Transaction")
+        print("2. View Customer Info")
+        print("3. Logout")
+        
+        choice = input("Choose an option: ").strip()
+        
+        if choice == "1":
+            process_customer_transaction(bank)
+        elif choice == "2":
+            view_customer_info(bank)
+        elif choice == "3":
+            print("Logging out...")
+            bank.current_user = None
+            break
+        else:
+            print("❌ Invalid choice!")
+
+def process_customer_transaction(bank):
+    """Handle customer deposits/withdrawals."""
+    print("\n--- Process Transaction ---")
+    
+    username = input("Enter customer username: ").strip()
+    
+    print("\nTransaction type:")
+    print("1. Deposit")
+    print("2. Withdrawal")
+    type_choice = input("Choose (1-2): ").strip()
+    
+    if type_choice not in ["1", "2"]:
+        print("❌ Invalid transaction type!")
+        return
+        
+    try:
+        amount = float(input("Enter amount: $").strip())
+        if amount <= 0:
+            print("❌ Amount must be positive!")
+            return
+    except ValueError:
+        print("❌ Invalid amount!")
+        return
+        
+    description = input("Enter transaction description: ").strip()
+    
+    transaction_type = "deposit" if type_choice == "1" else "withdrawal"
+    if bank.process_transaction(username, amount, transaction_type, description):
+        print(f"✅ {transaction_type.title()} processed successfully!")
+    else:
+        print("❌ Transaction failed!")
+
+def view_customer_info(bank):
+    """Display customer account information."""
+    username = input("\nEnter customer username: ").strip()
+    info = bank.get_customer_info(username)
+    
+    if info:
+        print("\n--- Customer Information ---")
+        print(f"Username: {info['username']}")
+        print(f"Role: {info['role']}")
+        if "account_id" in info:
+            print(f"Account ID: {info['account_id']}")
+            print(f"Balance: ${info['balance']:.2f}")
+            print(f"Transaction count: {info['transaction_count']}")
+    else:
+        print("❌ Customer not found or access denied!")
+
+def handle_admin_menu(bank):
+    """Handles admin operations."""
+    while True:
+        print("\n=== Admin Dashboard ===")
+        print("1. List All Users")
+        print("2. Change User Role")
+        print("3. View Customer Info")  # Admins can do everything employees can
+        print("4. Logout")
+        
+        choice = input("Choose an option: ").strip()
+        
+        if choice == "1":
+            list_all_users(bank)
+        elif choice == "2":
+            change_user_role(bank)
+        elif choice == "3":
+            view_customer_info(bank)
+        elif choice == "4":
+            print("Logging out...")
+            bank.current_user = None
+            break
+        else:
+            print("❌ Invalid choice!")
+
+def list_all_users(bank):
+    """Display all users in the system."""
+    users = bank.list_users()
+    
+    if users:
+        print("\n--- All Users ---")
+        for user in users:
+            account_status = "Has Account" if user["has_account"] else "No Account"
+            print(f"• {user['username']} ({user['role']}) - {account_status}")
+    else:
+        print("❌ Access denied or no users found!")
+
+def change_user_role(bank):
+    """Change a user's role."""
+    print("\n--- Change User Role ---")
+    username = input("Enter username: ").strip()
+    print("\nAvailable roles:")
+    print("1. Client")
+    print("2. Employee")
+    print("3. Admin")
+    
+    role_choice = input("Choose new role (1-3): ").strip()
+    
+    role_map = {"1": "client", "2": "employee", "3": "admin"}
+    if role_choice not in role_map:
+        print("❌ Invalid role choice!")
+        return
+        
+    if bank.change_user_role(username, role_map[role_choice]):
+        print(f"✅ Role updated for '{username}'!")
+    else:
+        print("❌ Role change failed!")
 
 if __name__ == "__main__":
     main()

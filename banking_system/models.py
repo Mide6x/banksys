@@ -48,7 +48,7 @@ class Account:
             self.balance += amount
         elif transaction_type == "debit":
             if self.balance < amount:
-                print("⚠️ Warning: Insufficient funds! Transaction still recorded but may be declined.")
+                print("❌ Warning: Insufficient funds! Transaction still recorded but may be declined.")
             self.balance -= amount
 
         print(f"✅ Transaction recorded: {transaction_type} ${amount:.2f} for {self.owner_username}")

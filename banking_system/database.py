@@ -28,7 +28,7 @@ class Database:
                         account_id=data.get("account_id")  # May be None
                     )
             except (json.JSONDecodeError, KeyError) as e:
-                print(f"⚠️ Warning: Failed to load 'users.json'. Error: {e}")
+                print(f"❌ Warning: Failed to load 'users.json'. Error: {e}")
 
         # Load account data
         if os.path.exists("accounts.json"):
@@ -43,7 +43,7 @@ class Database:
                         transactions=data.get("transactions", [])  # Default to empty list
                     )
             except (json.JSONDecodeError, KeyError) as e:
-                print(f"⚠️ Warning: Failed to load 'accounts.json'. Error: {e}")
+                print(f"❌ Warning: Failed to load 'accounts.json'. Error: {e}")
     
     def save_data(self):
         """Saves user and account data to JSON files."""
